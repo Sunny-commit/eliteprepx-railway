@@ -28,18 +28,24 @@ def welcome(msg):
     )
 
 # 🔍 Handle button responses
-@bot.message_handler(func=lambda m: True)
+@bot.message_handler(func=lambda m: m.text is not None)
 def reply(m):
-    text = m.text.lower()
-    if "gate" in text:
+    text = m.text.lower().strip()
+
+    # Block false positives like "i paid"
+    if "i paid" in text:
+        bot.reply_to(m, "❗To unlock premium content, please send a *payment screenshot*. No text-based confirmation allowed.", parse_mode="Markdown")
+        return
+
+    if text == "📘 gate":
         bot.reply_to(m, "📘 GATE Materials:\nhttps://your-link")
-    elif "jee" in text:
+    elif text == "📗 jee":
         bot.reply_to(m, "📗 JEE Materials:\nhttps://your-link")
-    elif "neet" in text:
+    elif text == "📕 neet":
         bot.reply_to(m, "📕 NEET PDFs:\nhttps://your-link")
-    elif "ml" in text or "ai" in text:
+    elif text == "🤖 ai/ml":
         bot.reply_to(m, "🤖 AI/ML PDFs & Cheat Sheets:\nhttps://your-link")
-    elif "interview" in text:
+    elif text == "💻 interview kits":
         bot.reply_to(m, "💻 SDE Interview Kits:\nhttps://your-link")
     elif "premium" in text:
         premium_info(m)
