@@ -6,7 +6,7 @@ BOT_TOKEN = os.environ['BOT_TOKEN']
 bot = telebot.TeleBot(BOT_TOKEN)
 
 # 🔒 Replace with your Telegram numeric ID (from @userinfobot)
-ADMIN_ID = 123456789
+ADMIN_ID = 5904719884
 
 # 🧾 Log every user who starts
 @bot.message_handler(commands=['start'])
@@ -58,7 +58,7 @@ def premium_info(msg):
 - AI/ML Projects & Cheat Sheets
 - Coding Roadmaps + SDE Kits
 
-💰 Just ₹49 via UPI: `eliteprepx@paytm`  
+💰 Just ₹49 via UPI: `patetichandu@oksbi`  
 📸 Send your *payment screenshot here*.
 
 ⏳ We’ll verify & send premium links directly in chat.
