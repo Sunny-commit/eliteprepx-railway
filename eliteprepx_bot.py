@@ -7,17 +7,24 @@ bot = telebot.TeleBot(BOT_TOKEN)
 
 ADMIN_ID = 5904719884
 
-# ✅ Premium links
+# 🔗 Drive links
+FREE_LINKS = {
+    "gate": "https://drive.google.com/your-free-gate",
+    "jee": "https://drive.google.com/your-free-jee",
+    "neet": "https://drive.google.com/your-free-neet",
+    "ai": "https://drive.google.com/your-free-ai",
+    "interview": "https://drive.google.com/your-free-interview"
+}
 PREMIUM_LINKS = {
-    "gate": "https://drive.google.com/your-gate-link",
-    "jee": "https://drive.google.com/your-jee-link",
-    "neet": "https://drive.google.com/your-neet-link",
-    "ai": "https://drive.google.com/your-ai-link",
-    "interview": "https://drive.google.com/your-interview-link",
-    "all": "https://drive.google.com/your-full-premium-pack"
+    "gate": "https://drive.google.com/your-premium-gate",
+    "jee": "https://drive.google.com/your-premium-jee",
+    "neet": "https://drive.google.com/your-premium-neet",
+    "ai": "https://drive.google.com/your-premium-ai",
+    "interview": "https://drive.google.com/your-premium-interview",
+    "all": "https://drive.google.com/your-full-premium"
 }
 
-# ✅ Start Command
+# 🧾 Start command
 @bot.message_handler(commands=['start'])
 def welcome(msg):
     user = msg.from_user
@@ -37,108 +44,91 @@ def welcome(msg):
         parse_mode="Markdown"
     )
 
-# ✅ Response Handler
-@bot.message_handler(func=lambda m: m.text is not None)
-def reply(m):
+# 🆓 Free content
+@bot.message_handler(func=lambda m: m.text in ["📘 GATE", "📗 JEE", "📕 NEET", "🤖 AI/ML", "💻 Interview Kits"])
+def free_reply(m):
+    key = {
+        "📘 GATE": "gate",
+        "📗 JEE": "jee",
+        "📕 NEET": "neet",
+        "🤖 AI/ML": "ai",
+        "💻 Interview Kits": "interview"
+    }[m.text]
+    bot.reply_to(m, f"📂 Free {m.text} Materials:\n{FREE_LINKS[key]}")
+
+# 💎 Premium trigger
+@bot.message_handler(func=lambda m: m.text == "💎 Get Premium Access")
+def show_premium_options(m):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.row("🎯 GATE Premium", "🧪 JEE Premium", "🩺 NEET Premium")
+    markup.row("🧠 AI/ML Premium", "🧑‍💼 Interview Premium")
+    markup.row("📦 All Access - ₹49")
+    bot.send_message(m.chat.id, "💎 Select a premium pack to continue 👇", reply_markup=markup)
+
+# 💰 Show UPI and ask screenshot
+@bot.message_handler(func=lambda m: m.text.endswith("Premium") or "All Access" in m.text)
+def premium_request(m):
+    subject_map = {
+        "🎯 gate premium": ("gate", 29),
+        "🧪 jee premium": ("jee", 29),
+        "🩺 neet premium": ("neet", 29),
+        "🧠 ai/ml premium": ("ai", 39),
+        "🧑‍💼 interview premium": ("interview", 39),
+        "📦 all access - ₹49": ("all", 49)
+    }
     text = m.text.lower().strip()
-
-    if "i paid" in text:
-        bot.reply_to(m, "❗To unlock premium content, please send a *payment screenshot*. No text-based confirmation allowed.", parse_mode="Markdown")
+    if text not in subject_map:
+        bot.reply_to(m, "❓ Invalid selection.")
         return
+    category, price = subject_map[text]
+    bot.reply_to(
+        m,
+        f"💎 *{category.upper()} Premium Access* - ₹{price}\n\nUPI: `patetichandu@oksbi`\n📸 Send payment *screenshot here* for verification.",
+        parse_mode="Markdown"
+    )
 
-    if text == "📘 gate":
-        gate_premium_info(m)
-    elif text == "📗 jee":
-        jee_premium_info(m)
-    elif text == "📕 neet":
-        neet_premium_info(m)
-    elif text == "🤖 ai/ml":
-        ai_premium_info(m)
-    elif text == "💻 interview kits":
-        interview_premium_info(m)
-    elif "premium" in text:
-        all_premium_info(m)
-    else:
-        bot.reply_to(m, "❓ Please use the buttons below to navigate.")
-
-# ✅ Subject Info Functions
-def gate_premium_info(msg):
-    bot.reply_to(msg, "📘 *GATE Premium Access* - ₹29\nPay via UPI: `patetichandu@oksbi`\nSend screenshot here.", parse_mode="Markdown")
-
-def jee_premium_info(msg):
-    bot.reply_to(msg, "📗 *JEE Premium Access* - ₹29\nPay via UPI: `patetichandu@oksbi`\nSend screenshot here.", parse_mode="Markdown")
-
-def neet_premium_info(msg):
-    bot.reply_to(msg, "📕 *NEET Premium Access* - ₹29\nPay via UPI: `patetichandu@oksbi`\nSend screenshot here.", parse_mode="Markdown")
-
-def ai_premium_info(msg):
-    bot.reply_to(msg, "🤖 *AI/ML Premium Access* - ₹39\nPay via UPI: `patetichandu@oksbi`\nSend screenshot here.", parse_mode="Markdown")
-
-def interview_premium_info(msg):
-    bot.reply_to(msg, "💻 *Interview Kits Premium* - ₹39\nPay via UPI: `patetichandu@oksbi`\nSend screenshot here.", parse_mode="Markdown")
-
-def all_premium_info(msg):
-    bot.reply_to(msg, """💎 *ElitePrepX Full Premium Access*
-📃 All Subjects Included:
-- UPSC, GATE, JEE, NEET, AI/ML, Interview Kits
-
-💰 ₹49 via UPI: `patetichandu@oksbi`
-📸 Send your payment *screenshot here*.
-⏳ We’ll verify and send links soon.""", parse_mode="Markdown")
-
-# ✅ Screenshot Handler
+# 📸 Screenshot handler
 @bot.message_handler(content_types=['photo', 'document'])
 def handle_payment_screenshot(msg):
     user = msg.from_user
-    caption = msg.caption if msg.caption else "No caption"
+    caption = msg.caption or "No caption"
     bot.forward_message(chat_id=ADMIN_ID, from_chat_id=msg.chat.id, message_id=msg.message_id)
     bot.send_message(
         ADMIN_ID,
-        f"📸 *Screenshot Received*\n👤 @{user.username or 'NoUsername'}\n🆔 `{user.id}`\n✏️ _{caption}_",
+        f"📸 *Screenshot Received*\n👤 @{user.username or 'NoUsername'}\n🆔 `{user.id}`\n✏️ Caption: _{caption}_",
         parse_mode="Markdown"
     )
-    bot.reply_to(msg, "✅ Screenshot received!\nYour payment is being verified.\nYou’ll get the premium content shortly.")
+    bot.reply_to(msg, "✅ Screenshot received!\nWe’ll verify and send your content shortly.")
 
-# ✅ Admin Command to Manually Send Content
+# 🔐 Admin command
 @bot.message_handler(commands=['give'])
-def manual_send_premium(msg):
+def give_premium(msg):
     if msg.from_user.id != ADMIN_ID:
-        bot.reply_to(msg, "⛔ You're not authorized to use this command.")
+        bot.reply_to(msg, "⛔ Not authorized.")
         return
 
     try:
-        parts = msg.text.split()
-        if len(parts) != 3:
-            bot.reply_to(msg, "❗Usage: /give <user_id> <category>")
-            return
-
-        user_id, category = parts[1], parts[2].lower()
+        _, user_id, category = msg.text.split()
         if category not in PREMIUM_LINKS:
-            bot.reply_to(msg, f"❌ Invalid category. Choose: {', '.join(PREMIUM_LINKS.keys())}")
+            bot.reply_to(msg, f"❌ Invalid category. Use: {', '.join(PREMIUM_LINKS)}")
             return
 
-        # ✅ Check if already sent
+        filepath = "data/premium_users.txt"
         os.makedirs("data", exist_ok=True)
-        track_file = "data/premium_users.txt"
-        if os.path.exists(track_file):
-            with open(track_file, "r") as f:
+        if os.path.exists(filepath):
+            with open(filepath, "r") as f:
                 if f"{user_id}-{category}" in f.read():
-                    bot.reply_to(msg, f"⚠️ Already sent {category} premium to user {user_id}.")
+                    bot.reply_to(msg, "⚠️ Already sent.")
                     return
 
-        # ✅ Send premium
-        bot.send_message(chat_id=user_id,
-                         text=f"✅ Here's your *{category.upper()}* premium content:\n{PREMIUM_LINKS[category]}",
-                         parse_mode="Markdown")
-
-        # ✅ Log it
-        with open(track_file, "a") as f:
+        bot.send_message(int(user_id), f"✅ Your *{category.upper()}* premium content:\n{PREMIUM_LINKS[category]}", parse_mode="Markdown")
+        with open(filepath, "a") as f:
             f.write(f"{user_id}-{category}\n")
 
-        bot.reply_to(msg, f"✅ Sent {category.upper()} premium to user ID {user_id}.")
+        bot.reply_to(msg, f"✅ Sent to {user_id}")
 
     except Exception as e:
-        bot.reply_to(msg, f"⚠️ Error: {str(e)}")
+        bot.reply_to(msg, f"❌ Error: {str(e)}")
 
-# ✅ Start the Bot
+# ⏳ Stay alive
 bot.infinity_polling()
