@@ -27,6 +27,15 @@ PREMIUM_LINKS = {
 PREF_FILE = "data/user_preferences.txt"
 QUIZ_FILE = "data/quiz_scores.txt"
 
+# Helper: Show main menu
+def show_main_menu(chat_id):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.row("\U0001F4D8 GATE", "\U0001F4D7 JEE", "\U0001F4D5 NEET")
+    markup.row("\U0001F916 AI/ML", "\U0001F4BB Interview Kits")
+    markup.row("\U0001F48E Get Premium Access", "\U0001F4DA Smart Recommender")
+    markup.row("\U0001F4C5 Daily Digest", "\U0001F3B2 Take Quiz")
+    bot.send_message(chat_id, "\U0001F44B *Welcome to ElitePrepX!*\n\nChoose a category below:", parse_mode="Markdown", reply_markup=markup)
+
 # Start
 @bot.message_handler(commands=['start'])
 def welcome(msg):
@@ -34,19 +43,7 @@ def welcome(msg):
     os.makedirs("data", exist_ok=True)
     with open("data/users.txt", "a") as f:
         f.write(f"{user.first_name} (@{user.username}) - {user.id}\n")
-
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.row("\U0001F4D8 GATE", "\U0001F4D7 JEE", "\U0001F4D5 NEET")
-    markup.row("\U0001F916 AI/ML", "\U0001F4BB Interview Kits")
-    markup.row("\U0001F48E Get Premium Access", "\U0001F4DA Smart Recommender")
-    markup.row("\U0001F4C5 Daily Digest", "\U0001F3B2 Take Quiz")
-
-    bot.send_message(
-        msg.chat.id,
-        "\U0001F44B *Welcome to ElitePrepX!*\n\nChoose a category below:",
-        parse_mode="Markdown",
-        reply_markup=markup
-    )
+    show_main_menu(msg.chat.id)
 
 # Free content
 @bot.message_handler(func=lambda m: m.text in ["\U0001F4D8 GATE", "\U0001F4D7 JEE", "\U0001F4D5 NEET", "\U0001F916 AI/ML", "\U0001F4BB Interview Kits"])
@@ -72,10 +69,11 @@ def show_premium_options(m):
     markup.row("\U0001F519 Back to Main Menu")
     bot.send_message(m.chat.id, "Select a premium plan:", reply_markup=markup)
 
-@bot.message_handler(func=lambda m: "premium" in m.text.lower())
+@bot.message_handler(func=lambda m: "premium" in m.text.lower() or m.text == "\U0001F519 Back to Main Menu")
 def handle_premium_request(m):
     if m.text == "\U0001F519 Back to Main Menu":
-        return welcome(m)
+        show_main_menu(m.chat.id)
+        return
 
     subject_map = {
         "gate": ("gate", 29), "jee": ("jee", 29), "neet": ("neet", 29),
