@@ -68,11 +68,15 @@ def show_premium_options(m):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.row("\U0001F3AF GATE Premium", "\U0001F9EA JEE Premium", "\U0001FA7A NEET Premium")
     markup.row("\U0001F9E0 AI/ML Premium", "\U0001F468‍\U0001F4BC Interview Premium")
-    markup.row("\U0001F4E6 All Access - \u20B949")
+    markup.row("\U0001F4E6 All Access - ₹49")
+    markup.row("\U0001F519 Back to Main Menu")
     bot.send_message(m.chat.id, "Select a premium plan:", reply_markup=markup)
 
 @bot.message_handler(func=lambda m: "premium" in m.text.lower())
 def handle_premium_request(m):
+    if m.text == "\U0001F519 Back to Main Menu":
+        return welcome(m)
+
     subject_map = {
         "gate": ("gate", 29), "jee": ("jee", 29), "neet": ("neet", 29),
         "ai/ml": ("ai", 39), "interview": ("interview", 39),
@@ -145,7 +149,6 @@ def handle_quiz_answer(m):
         f.write(f"{m.from_user.id},{score},{datetime.now()}\n")
     if score:
         bot.reply_to(m, "✅ Correct! You’ve earned a quiz reward.")
-        # Reward logic here (future enhancement)
     else:
         bot.reply_to(m, "❌ Incorrect. Try again tomorrow.")
 
