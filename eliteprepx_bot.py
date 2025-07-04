@@ -1,3 +1,9 @@
+# This is your updated Telegram bot code with tight integration to Drive automation features.
+# It assumes you're running the drive scraper/uploader script regularly in the background via cron/scheduler.
+# This bot will now pull logs from the Drive uploader to display the latest trending uploads per subject and manage premium/free access.
+
+# All previously included bot features (quiz, premium, smart recommender, etc.) remain intact.
+
 import os
 import telebot
 from telebot import types
@@ -28,7 +34,6 @@ PREF_FILE = "data/user_preferences.txt"
 QUIZ_FILE = "data/quiz_scores.txt"
 UPLOAD_LOG = "data/upload_log.txt"
 
-# Start
 @bot.message_handler(commands=['start'])
 def welcome(msg):
     user = msg.from_user
@@ -51,7 +56,6 @@ def welcome(msg):
         reply_markup=markup
     )
 
-# Free content
 @bot.message_handler(func=lambda m: m.text in ["\U0001F4D8 GATE", "\U0001F4D7 JEE", "\U0001F4D5 NEET", "\U0001F916 AI/ML", "\U0001F4BB Interview Kits"])
 def free_reply(m):
     key = {
@@ -65,7 +69,6 @@ def free_reply(m):
         f.write(f"{m.from_user.id},{key}\n")
     bot.reply_to(m, f"\U0001F4C2 Free {key.upper()} Materials:\n{FREE_LINKS[key]}")
 
-# Premium access
 @bot.message_handler(func=lambda m: m.text == "\U0001F48E Get Premium Access")
 def show_premium_options(m):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -91,7 +94,6 @@ def handle_premium_request(m):
             bot.reply_to(m, f"\U0001F4B8 *{category.upper()} Premium* - ₹{price}\nPay via UPI: `patetichandu@oksbi`\nSend screenshot here.", parse_mode="Markdown")
             return
 
-# Screenshot verification
 @bot.message_handler(content_types=['photo', 'document'])
 def handle_payment_screenshot(msg):
     user = msg.from_user
@@ -99,7 +101,6 @@ def handle_payment_screenshot(msg):
     bot.send_message(ADMIN_ID, f"\U0001F4F8 Screenshot from @{user.username or 'NoUsername'} | ID: `{user.id}`", parse_mode="Markdown")
     bot.reply_to(msg, "✅ Screenshot received. Verification in progress.")
 
-# Admin manually sends premium content
 @bot.message_handler(commands=['give'])
 def give_premium(msg):
     if msg.from_user.id != ADMIN_ID:
@@ -113,7 +114,6 @@ def give_premium(msg):
     except:
         bot.reply_to(msg, "Invalid command. Use /give <user_id> <category>")
 
-# AI Recommender based on preferences
 @bot.message_handler(func=lambda m: m.text == "\U0001F4DA Smart Recommender")
 def smart_recommend(msg):
     user_id = str(msg.from_user.id)
@@ -132,12 +132,10 @@ def smart_recommend(msg):
         response = "❓ No data available."
     bot.send_message(msg.chat.id, response, parse_mode="Markdown", reply_markup=markup)
 
-# Daily Digest (Basic Simulated)
 @bot.message_handler(func=lambda m: m.text == "\U0001F4C5 Daily Digest")
 def daily_digest(msg):
     bot.reply_to(msg, "📰 *ElitePrepX Daily Digest*\n- Tip: Revise at least 2 topics/day\n- New Premium Added: GATE Mock 2025\n- Trending: AI Interview Questions\n(Feature under development)", parse_mode="Markdown")
 
-# Quiz feature (demo only)
 @bot.message_handler(func=lambda m: m.text == "\U0001F3B2 Take Quiz")
 def quiz(msg):
     question = "Which exam is for engineering PG in India?"
@@ -158,22 +156,12 @@ def handle_quiz_answer(m):
     else:
         bot.reply_to(m, "❌ Incorrect. Try again tomorrow.")
 
-# Back to main menu handler
 @bot.message_handler(func=lambda m: m.text == "\U0001F519 Back to Main Menu")
 def back_to_main_menu(msg):
     welcome(msg)
 
-# Latest uploads per subject (using log)
-def get_latest_for(subject):
-    if not os.path.exists(UPLOAD_LOG):
-        return "No data available."
-    with open(UPLOAD_LOG, "r") as f:
-        lines = [line.strip() for line in f if f",{subject.lower()}," in line.lower() or f"{subject.upper()}" in line.upper()]
-    if not lines:
-        return "No recent uploads."
-    return "\n".join(lines[-5:])
-
-@bot.message_handler(func=lambda m: m.text.startswith("📑 Latest "))
+# Read last few logs for a subject
+@bot.message_handler(func=lambda m: m.text.startswith("\U0001F4D1 Latest "))
 def latest_subject_handler(m):
     subject_map = {
         "Latest GATE": "gate",
@@ -182,10 +170,14 @@ def latest_subject_handler(m):
         "Latest AI": "ai",
         "Latest Interview": "interview"
     }
-    subject = subject_map.get(m.text.replace("📑 ", ""))
-    if subject:
-        latest = get_latest_for(subject)
-        bot.reply_to(m, f"📤 *Latest {subject.upper()} Uploads:*\n{latest}", parse_mode="Markdown")
+    subject = subject_map.get(m.text.replace("\U0001F4D1 ", ""))
+    if not subject or not os.path.exists(UPLOAD_LOG):
+        return bot.reply_to(m, "No data found.")
+    with open(UPLOAD_LOG, "r") as f:
+        lines = [line.strip() for line in f if subject.upper() in line.upper() or subject.lower() in line.lower()]
+    if not lines:
+        return bot.reply_to(m, f"No recent uploads found for {subject.upper()}.")
+    latest = "\n".join(lines[-5:])
+    bot.send_message(m.chat.id, f"📤 *Latest {subject.upper()} Uploads:*\n{latest}", parse_mode="Markdown")
 
-# Keep bot alive
 bot.infinity_polling()
