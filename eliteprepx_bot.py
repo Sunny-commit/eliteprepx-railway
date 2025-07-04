@@ -26,15 +26,7 @@ PREMIUM_LINKS = {
 
 PREF_FILE = "data/user_preferences.txt"
 QUIZ_FILE = "data/quiz_scores.txt"
-
-# Helper: Show main menu
-def show_main_menu(chat_id):
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.row("\U0001F4D8 GATE", "\U0001F4D7 JEE", "\U0001F4D5 NEET")
-    markup.row("\U0001F916 AI/ML", "\U0001F4BB Interview Kits")
-    markup.row("\U0001F48E Get Premium Access", "\U0001F4DA Smart Recommender")
-    markup.row("\U0001F4C5 Daily Digest", "\U0001F3B2 Take Quiz")
-    bot.send_message(chat_id, "\U0001F44B *Welcome to ElitePrepX!*\n\nChoose a category below:", parse_mode="Markdown", reply_markup=markup)
+UPLOAD_LOG = "data/upload_log.txt"
 
 # Start
 @bot.message_handler(commands=['start'])
@@ -43,7 +35,21 @@ def welcome(msg):
     os.makedirs("data", exist_ok=True)
     with open("data/users.txt", "a") as f:
         f.write(f"{user.first_name} (@{user.username}) - {user.id}\n")
-    show_main_menu(msg.chat.id)
+
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.row("\U0001F4D8 GATE", "\U0001F4D7 JEE", "\U0001F4D5 NEET")
+    markup.row("\U0001F916 AI/ML", "\U0001F4BB Interview Kits")
+    markup.row("\U0001F48E Get Premium Access", "\U0001F4DA Smart Recommender")
+    markup.row("\U0001F4C5 Daily Digest", "\U0001F3B2 Take Quiz")
+    markup.row("\U0001F4D1 Latest GATE", "\U0001F4D1 Latest JEE", "\U0001F4D1 Latest NEET")
+    markup.row("\U0001F4D1 Latest AI", "\U0001F4D1 Latest Interview")
+
+    bot.send_message(
+        msg.chat.id,
+        "\U0001F44B *Welcome to ElitePrepX!*\n\nChoose a category below:",
+        parse_mode="Markdown",
+        reply_markup=markup
+    )
 
 # Free content
 @bot.message_handler(func=lambda m: m.text in ["\U0001F4D8 GATE", "\U0001F4D7 JEE", "\U0001F4D5 NEET", "\U0001F916 AI/ML", "\U0001F4BB Interview Kits"])
@@ -69,11 +75,10 @@ def show_premium_options(m):
     markup.row("\U0001F519 Back to Main Menu")
     bot.send_message(m.chat.id, "Select a premium plan:", reply_markup=markup)
 
-@bot.message_handler(func=lambda m: "premium" in m.text.lower() or m.text == "\U0001F519 Back to Main Menu")
+@bot.message_handler(func=lambda m: "premium" in m.text.lower())
 def handle_premium_request(m):
     if m.text == "\U0001F519 Back to Main Menu":
-        show_main_menu(m.chat.id)
-        return
+        return welcome(m)
 
     subject_map = {
         "gate": ("gate", 29), "jee": ("jee", 29), "neet": ("neet", 29),
@@ -149,6 +154,30 @@ def handle_quiz_answer(m):
         bot.reply_to(m, "✅ Correct! You’ve earned a quiz reward.")
     else:
         bot.reply_to(m, "❌ Incorrect. Try again tomorrow.")
+
+# Latest uploads per subject (using log)
+def get_latest_for(subject):
+    if not os.path.exists(UPLOAD_LOG):
+        return "No data available."
+    with open(UPLOAD_LOG, "r") as f:
+        lines = [line.strip() for line in f if f",{subject.lower()}," in line.lower() or f"{subject.upper()}" in line.upper()]
+    if not lines:
+        return "No recent uploads."
+    return "\n".join(lines[-5:])
+
+@bot.message_handler(func=lambda m: m.text.startswith("📑 Latest "))
+def latest_subject_handler(m):
+    subject_map = {
+        "Latest GATE": "gate",
+        "Latest JEE": "jee",
+        "Latest NEET": "neet",
+        "Latest AI": "ai",
+        "Latest Interview": "interview"
+    }
+    subject = subject_map.get(m.text.replace("📑 ", ""))
+    if subject:
+        latest = get_latest_for(subject)
+        bot.reply_to(m, f"📤 *Latest {subject.upper()} Uploads:*\n{latest}", parse_mode="Markdown")
 
 # Keep bot alive
 bot.infinity_polling()
