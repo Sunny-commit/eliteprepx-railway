@@ -97,7 +97,7 @@ def handle_payment_screenshot(msg):
     user = msg.from_user
     bot.forward_message(ADMIN_ID, msg.chat.id, msg.message_id)
     bot.send_message(ADMIN_ID, f"\U0001F4F8 Screenshot from @{user.username or 'NoUsername'} | ID: `{user.id}`", parse_mode="Markdown")
-    bot.reply_to(msg, "\u2705 Screenshot received. Verification in progress.")
+    bot.reply_to(msg, "✅ Screenshot received. Verification in progress.")
 
 # Admin manually sends premium content
 @bot.message_handler(commands=['give'])
@@ -117,6 +117,8 @@ def give_premium(msg):
 @bot.message_handler(func=lambda m: m.text == "\U0001F4DA Smart Recommender")
 def smart_recommend(msg):
     user_id = str(msg.from_user.id)
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.row("\U0001F519 Back to Main Menu")
     if os.path.exists(PREF_FILE):
         with open(PREF_FILE, "r") as f:
             lines = [line.strip() for line in f if line.startswith(user_id)]
@@ -125,10 +127,10 @@ def smart_recommend(msg):
             links = [FREE_LINKS[s] for s in subjects if s in FREE_LINKS]
             response = "\U0001F4CB *Recommended PDFs for You:*\n" + "\n".join(links)
         else:
-            response = "\u2753 No preference found. Please explore some subjects first."
+            response = "❓ No preference found. Please explore some subjects first."
     else:
-        response = "\u2753 No data available."
-    bot.reply_to(msg, response, parse_mode="Markdown")
+        response = "❓ No data available."
+    bot.send_message(msg.chat.id, response, parse_mode="Markdown", reply_markup=markup)
 
 # Daily Digest (Basic Simulated)
 @bot.message_handler(func=lambda m: m.text == "\U0001F4C5 Daily Digest")
@@ -140,9 +142,10 @@ def daily_digest(msg):
 def quiz(msg):
     question = "Which exam is for engineering PG in India?"
     options = ["NEET", "GATE", "JEE"]
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     for opt in options:
         markup.row(opt)
+    markup.row("\U0001F519 Back to Main Menu")
     bot.send_message(msg.chat.id, question, reply_markup=markup)
 
 @bot.message_handler(func=lambda m: m.text in ["NEET", "GATE", "JEE"])
@@ -154,6 +157,11 @@ def handle_quiz_answer(m):
         bot.reply_to(m, "✅ Correct! You’ve earned a quiz reward.")
     else:
         bot.reply_to(m, "❌ Incorrect. Try again tomorrow.")
+
+# Back to main menu handler
+@bot.message_handler(func=lambda m: m.text == "\U0001F519 Back to Main Menu")
+def back_to_main_menu(msg):
+    welcome(msg)
 
 # Latest uploads per subject (using log)
 def get_latest_for(subject):
