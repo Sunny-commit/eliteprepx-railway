@@ -11,11 +11,11 @@ bot = telebot.TeleBot(BOT_TOKEN)
 ADMIN_ID = 5904719884
 
 FREE_LINKS = {
-    "gate": "https://drive.google.com/your-free-gate",
-    "jee": "https://drive.google.com/your-free-jee",
-    "neet": "https://drive.google.com/your-free-neet",
-    "ai": "https://drive.google.com/your-free-ai",
-    "interview": "https://drive.google.com/your-free-interview"
+    "gate": "https://drive.google.com/drive/folders/1fJ-fefSIzspySIqCFTVRkaoiLJSO4rHS?usp=sharing",
+    "jee": "https://drive.google.com/file/d/1GTO6XS6JUlzv_NMghQozd553fkM5HVhj/view?usp=sharing",
+    "neet": "https://drive.google.com/file/d/1e7P878YjfXpVBc68dne_GHy11H86aGF5/view?usp=sharing",
+    "ai": "https://drive.google.com/file/d/1XVx4bGjcwiylqrlOVwPUtMu5Ia_GMfIA/view?usp=sharing",
+    "interview": "https://drive.google.com/file/d/1NUawkwaHqeUU65_NsAYb2Ol5n3uFhEQ_/view?usp=sharing"
 }
 
 PREMIUM_LINKS = {
