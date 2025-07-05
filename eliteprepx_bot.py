@@ -11,7 +11,7 @@ bot = telebot.TeleBot(BOT_TOKEN)
 ADMIN_ID = 5904719884
 
 FREE_LINKS = {
-    "gate": "https://drive.google.com/drive/folders/1fJ-fefSIzspySIqCFTVRkaoiLJSO4rHS?usp=sharing",
+    "gate": "https://drive.google.com/file/d/1BatyPPAPGKbszQmLgk6UQMjP87LyyN__/view?usp=sharing",
     "jee": "https://drive.google.com/file/d/1GTO6XS6JUlzv_NMghQozd553fkM5HVhj/view?usp=sharing",
     "neet": "https://drive.google.com/file/d/1e7P878YjfXpVBc68dne_GHy11H86aGF5/view?usp=sharing",
     "ai": "https://drive.google.com/file/d/1XVx4bGjcwiylqrlOVwPUtMu5Ia_GMfIA/view?usp=sharing",
