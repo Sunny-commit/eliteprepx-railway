@@ -19,12 +19,12 @@ FREE_LINKS = {
 }
 
 PREMIUM_LINKS = {
-    "gate": "https://drive.google.com/your-premium-gate",
-    "jee": "https://drive.google.com/your-premium-jee",
-    "neet": "https://drive.google.com/your-premium-neet",
-    "ai": "https://drive.google.com/your-premium-ai",
-    "interview": "https://drive.google.com/your-premium-interview",
-    "all": "https://drive.google.com/your-full-premium"
+    "gate": "https://drive.google.com/drive/folders/1LTpsruxkCYh5YOtJhlP7Ony7Iwv80k08?usp=sharing",
+    "jee": "https://drive.google.com/drive/folders/1b7W_kkjMhcL39xDbZkV_jKK0i4XOmOmi?usp=sharing",
+    "neet": "https://drive.google.com/drive/folders/1UllrkYS9uJUDVQErUGG_13QZmdLF6xrm?usp=sharing",
+    "ai": "https://drive.google.com/drive/folders/1IWl7u561verrrS5RobHFGHyPniYF9241?usp=sharing",
+    "interview": "https://drive.google.com/drive/folders/17ConfzIT6L2a7tvwJ9ndtHFltPeci91k?usp=sharing",
+    "all": "https://drive.google.com/drive/folders/16Ps3a2WVHbtYWean7s8jBCj8Xg10-mpm?usp=sharing"
 }
 
 PREF_FILE = "data/user_preferences.txt"
