@@ -29,7 +29,8 @@ PREMIUM_LINKS = {
 
 PREF_FILE = "data/user_preferences.txt"
 QUIZ_FILE = "data/quiz_scores.txt"
-UPLOAD_LOG = "C:/Users/patet/OneDrive/Desktop/elite_uploader/data/upload_log.txt"
+UPLOAD_LOG = "data/upload_log.txt"
+
 
 @bot.message_handler(commands=['start'])
 def welcome(msg):
