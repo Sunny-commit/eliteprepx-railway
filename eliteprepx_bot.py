@@ -179,16 +179,27 @@ def latest_subject_handler(m):
     }
     subject = lookup.get(text)
 
-    if not subject or not os.path.exists(UPLOAD_LOG):
-        return bot.reply_to(m, "⚠️ No data found or log file missing.")
+    if not subject:
+        return bot.reply_to(m, "⚠️ Unknown subject requested.")
 
+    if not os.path.exists(UPLOAD_LOG):
+        return bot.reply_to(m, "⚠️ Log file not found. Please upload some files first.")
+
+    # Match lines that include 'subject/' (e.g., jee/, gate/) regardless of case
     with open(UPLOAD_LOG, "r") as f:
-        lines = [line.strip() for line in f if subject in line.lower()]
+        lines = [line.strip() for line in f if f"{subject}/" in line.lower()]
 
     if not lines:
-        return bot.reply_to(m, f"No recent uploads found for {subject.title()}.")
+        return bot.reply_to(m, f"No recent uploads found for {subject.upper()}.")
 
-    latest = "\n".join(lines[-5:])
-    bot.send_message(m.chat.id, f"📤 *Latest {subject.upper()} Uploads:*\n{latest}", parse_mode="Markdown")
+    # Format the latest 5 nicely
+    latest_entries = []
+    for entry in lines[-5:][::-1]:  # Reverse to show newest first
+        timestamp, filename, folder = [x.strip() for x in entry.split(",")]
+        folder_clean = folder.split("/")[0].upper()
+        latest_entries.append(f"📄 *{filename}*\n📁 {folder_clean} | 🕒 {timestamp}")
+
+    final_msg = f"📤 *Latest {subject.upper()} Uploads:*\n\n" + "\n\n".join(latest_entries)
+    bot.send_message(m.chat.id, final_msg, parse_mode="Markdown")
 
 bot.infinity_polling()
