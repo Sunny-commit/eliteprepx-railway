@@ -171,11 +171,11 @@ def back_to_main_menu(msg):
 def latest_subject_handler(m):
     text = m.text.strip().lower()
     lookup = {
-        "📑 latest gate": "GATE",
-        "📑 latest jee": "JEE",
-        "📑 latest neet": "NEET",
-        "📑 latest ai": "AI",
-        "📑 latest interview": "INTERVIEW"
+        "📑 latest gate": "gate",
+        "📑 latest jee": "jee",
+        "📑 latest neet": "neet",
+        "📑 latest ai": "ai",
+        "📑 latest interview": "interview"
     }
     subject = lookup.get(text)
 
@@ -183,12 +183,12 @@ def latest_subject_handler(m):
         return bot.reply_to(m, "⚠️ No data found or log file missing.")
 
     with open(UPLOAD_LOG, "r") as f:
-        lines = [line.strip() for line in f if subject in line.upper()]
+        lines = [line.strip() for line in f if subject in line.lower()]
 
     if not lines:
-        return bot.reply_to(m, f"No recent uploads found for {subject}.")
+        return bot.reply_to(m, f"No recent uploads found for {subject.title()}.")
 
     latest = "\n".join(lines[-5:])
-    bot.send_message(m.chat.id, f"📤 *Latest {subject} Uploads:*\n{latest}", parse_mode="Markdown")
+    bot.send_message(m.chat.id, f"📤 *Latest {subject.upper()} Uploads:*\n{latest}", parse_mode="Markdown")
 
 bot.infinity_polling()
