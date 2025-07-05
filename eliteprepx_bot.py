@@ -161,23 +161,28 @@ def back_to_main_menu(msg):
     welcome(msg)
 
 # Read last few logs for a subject
-@bot.message_handler(func=lambda m: m.text.startswith("\U0001F4D1 Latest "))
+@bot.message_handler(func=lambda m: m.text.startswith("📑 Latest"))
 def latest_subject_handler(m):
-    subject_map = {
-        "Latest GATE": "gate",
-        "Latest JEE": "jee",
-        "Latest NEET": "neet",
-        "Latest AI": "ai",
-        "Latest Interview": "interview"
+    text = m.text.strip().lower()
+    lookup = {
+        "📑 latest gate": "GATE",
+        "📑 latest jee": "JEE",
+        "📑 latest neet": "NEET",
+        "📑 latest ai": "AI",
+        "📑 latest interview": "INTERVIEW"
     }
-    subject = subject_map.get(m.text.replace("\U0001F4D1 ", ""))
+    subject = lookup.get(text)
+    
     if not subject or not os.path.exists(UPLOAD_LOG):
-        return bot.reply_to(m, "No data found.")
+        return bot.reply_to(m, "⚠️ No data found or log file missing.")
+
     with open(UPLOAD_LOG, "r") as f:
-        lines = [line.strip() for line in f if subject.upper() in line.upper() or subject.lower() in line.lower()]
+        lines = [line.strip() for line in f if subject in line.upper()]
+
     if not lines:
-        return bot.reply_to(m, f"No recent uploads found for {subject.upper()}.")
+        return bot.reply_to(m, f"No recent uploads found for {subject}.")
+
     latest = "\n".join(lines[-5:])
-    bot.send_message(m.chat.id, f"📤 *Latest {subject.upper()} Uploads:*\n{latest}", parse_mode="Markdown")
+    bot.send_message(m.chat.id, f"📤 *Latest {subject} Uploads:*\n{latest}", parse_mode="Markdown")
 
 bot.infinity_polling()
