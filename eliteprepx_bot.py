@@ -211,6 +211,30 @@ def quiz_response(m):
 @bot.message_handler(func=lambda m: m.text == "🔙 Back to Main Menu")
 def back_to_main(msg):
     welcome(msg)
+    
+@bot.message_handler(commands=['list_users'])
+def list_users(msg):
+    if msg.from_user.id != ADMIN_ID:
+        return bot.reply_to(msg, "❌ You are not authorized to use this command.")
+
+    txt_path = "data/users.txt"
+    if not os.path.exists(txt_path):
+        return bot.reply_to(msg, "No user data found yet.")
+
+    with open(txt_path, "r") as f:
+        lines = f.readlines()
+
+    if not lines:
+        return bot.reply_to(msg, "No users have interacted yet.")
+
+    # Show latest 20 users (or fewer)
+    recent_users = lines[-20:]
+    response = "📋 *Latest Users:*\n" + "".join(recent_users)
+    if len(response) > 4000:  # Telegram limit
+        response = response[:3900] + "\n...truncated"
+
+    bot.send_message(msg.chat.id, response, parse_mode="Markdown")
+
 
 
 bot.infinity_polling()
