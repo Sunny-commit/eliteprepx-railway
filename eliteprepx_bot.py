@@ -184,4 +184,25 @@ def back_to_main_menu(msg):
     welcome(msg)
 
 
+@bot.message_handler(commands=['users'])
+def list_users(msg):
+    if msg.from_user.id != ADMIN_ID:
+        return bot.reply_to(msg, "❌ You are not authorized to use this command.")
+
+    users_file = "data/users.txt"
+    if not os.path.exists(users_file):
+        return bot.reply_to(msg, "⚠️ No users registered yet.")
+
+    with open(users_file, "r") as f:
+        users = f.readlines()
+
+    if not users:
+        return bot.reply_to(msg, "📭 No users found.")
+
+    reply_text = "*📋 Registered Users:*\n\n"
+    for i, line in enumerate(users[-20:][::-1], 1):  # Show last 20 users only, latest first
+        reply_text += f"{i}. `{line.strip()}`\n"
+
+    bot.send_message(msg.chat.id, reply_text, parse_mode="Markdown")
+
 bot.infinity_polling()
