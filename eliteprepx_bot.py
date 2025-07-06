@@ -34,10 +34,56 @@ UPLOAD_LOG = "C:/Users/patet/OneDrive/Desktop/eliteprepx-railway/data/upload_log
 
 @bot.message_handler(commands=['start'])
 def welcome(msg):
+    from datetime import datetime
     user = msg.from_user
+    user_id = user.id
+    username = f"@{user.username}" if user.username else "NoUsername"
+    name = user.first_name or "Unknown"
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
     os.makedirs("data", exist_ok=True)
-    with open("data/users.txt", "a") as f:
-        f.write(f"{user.first_name} (@{user.username}) - {user.id}\n")
+
+    # Prepare entry
+    entry_text = f"{timestamp} - {name} ({username}) - {user_id}\n"
+
+    # Add to users.txt if not already present
+    txt_path = "data/users.txt"
+    if not os.path.exists(txt_path):
+        open(txt_path, "w").close()
+
+    with open(txt_path, "r+") as f:
+        lines = f.readlines()
+        if not any(str(user_id) in line for line in lines):
+            f.write(entry_text)
+
+    # Optional: Also write to CSV (for analytics)
+    import csv
+    csv_path = "data/users.csv"
+    if not os.path.exists(csv_path):
+        with open(csv_path, "w", newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(["Timestamp", "Name", "Username", "UserID"])
+
+    with open(csv_path, "a", newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow([timestamp, name, username, user_id])
+
+    # Send bot welcome message and keyboard
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.add("📘 GATE", "📗 JEE", "📕 NEET")
+    markup.add("🤖 AI/ML", "🧠 Interview Kits")
+    markup.add("💎 Get Premium Access")
+    markup.add("📚 Smart Recommender", "🗓️ Daily Digest", "🎯 Take Quiz")
+
+    bot.send_message(
+        msg.chat.id,
+        """👋 *Welcome to ElitePrepX!*
+
+Choose a category below:""",
+        parse_mode="Markdown",
+        reply_markup=markup
+    )
+
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.add("📘 GATE")
