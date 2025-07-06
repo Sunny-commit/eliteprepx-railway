@@ -1,7 +1,5 @@
-# This is your updated Telegram bot code with tight integration to Drive automation features.
-# It is optimized for mobile usability using one-button-per-row layout and inline buttons for premium sections.
-
 import os
+import csv
 import telebot
 from telebot import types
 from datetime import datetime
@@ -29,12 +27,10 @@ PREMIUM_LINKS = {
 
 PREF_FILE = "data/user_preferences.txt"
 QUIZ_FILE = "data/quiz_scores.txt"
-UPLOAD_LOG = "C:/Users/patet/OneDrive/Desktop/eliteprepx-railway/data/upload_log.txt"
 
 
 @bot.message_handler(commands=['start'])
 def welcome(msg):
-    from datetime import datetime
     user = msg.from_user
     user_id = user.id
     username = f"@{user.username}" if user.username else "NoUsername"
@@ -43,10 +39,7 @@ def welcome(msg):
 
     os.makedirs("data", exist_ok=True)
 
-    # Prepare entry
-    entry_text = f"{timestamp} - {name} ({username}) - {user_id}\n"
-
-    # Add to users.txt if not already present
+    # Save to users.txt if not already present
     txt_path = "data/users.txt"
     if not os.path.exists(txt_path):
         open(txt_path, "w").close()
@@ -54,21 +47,19 @@ def welcome(msg):
     with open(txt_path, "r+") as f:
         lines = f.readlines()
         if not any(str(user_id) in line for line in lines):
-            f.write(entry_text)
+            f.write(f"{timestamp} - {name} ({username}) - {user_id}\n")
 
-    # Optional: Also write to CSV (for analytics)
-    import csv
+    # Save to users.csv
     csv_path = "data/users.csv"
     if not os.path.exists(csv_path):
         with open(csv_path, "w", newline='') as f:
             writer = csv.writer(f)
             writer.writerow(["Timestamp", "Name", "Username", "UserID"])
-
     with open(csv_path, "a", newline='') as f:
         writer = csv.writer(f)
         writer.writerow([timestamp, name, username, user_id])
 
-    # Send bot welcome message and keyboard
+    # Send welcome
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.add("📘 GATE", "📗 JEE", "📕 NEET")
     markup.add("🤖 AI/ML", "🧠 Interview Kits")
@@ -77,39 +68,10 @@ def welcome(msg):
 
     bot.send_message(
         msg.chat.id,
-        """👋 *Welcome to ElitePrepX!*
-
-Choose a category below:""",
+        """👋 *Welcome to ElitePrepX!*\n\nChoose a category below:""",
         parse_mode="Markdown",
         reply_markup=markup
     )
-
-
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.add("📘 GATE")
-    markup.add("📗 JEE")
-    markup.add("📕 NEET")
-    markup.add("🤖 AI/ML")
-    markup.add("🧠 Interview Kits")
-    markup.add("💎 Get Premium Access")
-    markup.add("📚 Smart Recommender")
-    markup.add("🗓️ Daily Digest")
-    markup.add("🎯 Take Quiz")
-    markup.add("📑 Latest GATE")
-    markup.add("📑 Latest JEE")
-    markup.add("📑 Latest NEET")
-    markup.add("📑 Latest AI")
-    markup.add("📑 Latest Interview")
-
-    bot.send_message(
-    msg.chat.id,
-    """👋 *Welcome to ElitePrepX!*
-
-Choose a category below:""",
-    parse_mode="Markdown",
-    reply_markup=markup
-)
-
 
 
 @bot.message_handler(func=lambda m: m.text in ["📘 GATE", "📗 JEE", "📕 NEET", "🤖 AI/ML", "🧠 Interview Kits"])
@@ -125,17 +87,18 @@ def free_reply(m):
         f.write(f"{m.from_user.id},{key}\n")
     bot.reply_to(m, f"📂 Free {key.upper()} Materials:\n{FREE_LINKS[key]}")
 
+
 @bot.message_handler(func=lambda m: m.text == "💎 Get Premium Access")
 def premium_options(m):
-    from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
-    markup = InlineKeyboardMarkup()
-    markup.add(InlineKeyboardButton("🎯 GATE Premium - ₹29", callback_data="premium_gate"))
-    markup.add(InlineKeyboardButton("🧪 JEE Premium - ₹29", callback_data="premium_jee"))
-    markup.add(InlineKeyboardButton("🧬 NEET Premium - ₹29", callback_data="premium_neet"))
-    markup.add(InlineKeyboardButton("🤖 AI/ML Premium - ₹39", callback_data="premium_ai"))
-    markup.add(InlineKeyboardButton("🧠 Interview Premium - ₹39", callback_data="premium_interview"))
-    markup.add(InlineKeyboardButton("💼 All Access - ₹49", callback_data="premium_all"))
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton("🎯 GATE Premium - ₹29", callback_data="premium_gate"))
+    markup.add(types.InlineKeyboardButton("🧪 JEE Premium - ₹29", callback_data="premium_jee"))
+    markup.add(types.InlineKeyboardButton("🧬 NEET Premium - ₹29", callback_data="premium_neet"))
+    markup.add(types.InlineKeyboardButton("🤖 AI/ML Premium - ₹39", callback_data="premium_ai"))
+    markup.add(types.InlineKeyboardButton("🧠 Interview Premium - ₹39", callback_data="premium_interview"))
+    markup.add(types.InlineKeyboardButton("💼 All Access - ₹49", callback_data="premium_all"))
     bot.send_message(m.chat.id, "💎 *Choose a Premium Plan:*", reply_markup=markup, parse_mode="Markdown")
+
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("premium_"))
 def handle_premium_buttons(call):
@@ -147,12 +110,14 @@ def handle_premium_buttons(call):
     price = prices[key]
     bot.send_message(call.message.chat.id, f"💳 *{key.upper()} Premium* - ₹{price}\nPay via UPI: `patetichandu@oksbi`\nSend screenshot here.", parse_mode="Markdown")
 
+
 @bot.message_handler(content_types=['photo', 'document'])
 def handle_payment_screenshot(msg):
     user = msg.from_user
     bot.forward_message(ADMIN_ID, msg.chat.id, msg.message_id)
     bot.send_message(ADMIN_ID, f"📸 Screenshot from @{user.username or 'NoUsername'} | ID: `{user.id}`", parse_mode="Markdown")
     bot.reply_to(msg, "✅ Screenshot received. Verification in progress.")
+
 
 @bot.message_handler(commands=['give'])
 def give_premium(msg):
@@ -166,6 +131,7 @@ def give_premium(msg):
         bot.reply_to(msg, f"Sent to {user_id}")
     except:
         bot.reply_to(msg, "Invalid command. Use /give <user_id> <category>")
+
 
 @bot.message_handler(func=lambda m: m.text == "📚 Smart Recommender")
 def smart_recommend(msg):
@@ -185,9 +151,11 @@ def smart_recommend(msg):
         response = "❓ No data available."
     bot.send_message(msg.chat.id, response, parse_mode="Markdown", reply_markup=markup)
 
+
 @bot.message_handler(func=lambda m: m.text == "🗓️ Daily Digest")
 def daily_digest(msg):
     bot.reply_to(msg, "📰 *ElitePrepX Daily Digest*\n- Tip: Revise 2 topics/day\n- New Premium: GATE Mock 2025\n- Trending: AI Interview Questions\n(Feature under development)", parse_mode="Markdown")
+
 
 @bot.message_handler(func=lambda m: m.text == "🎯 Take Quiz")
 def quiz(msg):
@@ -199,6 +167,7 @@ def quiz(msg):
     markup.add("🔙 Back to Main Menu")
     bot.send_message(msg.chat.id, question, reply_markup=markup)
 
+
 @bot.message_handler(func=lambda m: m.text in ["NEET", "GATE", "JEE"])
 def handle_quiz_answer(m):
     score = 1 if m.text == "GATE" else 0
@@ -209,43 +178,10 @@ def handle_quiz_answer(m):
     else:
         bot.reply_to(m, "❌ Incorrect. Try again tomorrow.")
 
+
 @bot.message_handler(func=lambda m: m.text == "🔙 Back to Main Menu")
 def back_to_main_menu(msg):
     welcome(msg)
 
-@bot.message_handler(func=lambda m: m.text.startswith("📑 Latest"))
-def latest_subject_handler(m):
-    text = m.text.strip().lower()
-    lookup = {
-        "📑 latest gate": "gate",
-        "📑 latest jee": "jee",
-        "📑 latest neet": "neet",
-        "📑 latest ai": "ai",
-        "📑 latest interview": "interview"
-    }
-    subject = lookup.get(text)
-
-    if not subject:
-        return bot.reply_to(m, "⚠️ Unknown subject requested.")
-
-    if not os.path.exists(UPLOAD_LOG):
-        return bot.reply_to(m, "⚠️ Log file not found. Please upload some files first.")
-
-    # Match lines that include 'subject/' (e.g., jee/, gate/) regardless of case
-    with open(UPLOAD_LOG, "r") as f:
-        lines = [line.strip() for line in f if f"{subject}/" in line.lower()]
-
-    if not lines:
-        return bot.reply_to(m, f"No recent uploads found for {subject.upper()}.")
-
-    # Format the latest 5 nicely
-    latest_entries = []
-    for entry in lines[-5:][::-1]:  # Reverse to show newest first
-        timestamp, filename, folder = [x.strip() for x in entry.split(",")]
-        folder_clean = folder.split("/")[0].upper()
-        latest_entries.append(f"📄 *{filename}*\n📁 {folder_clean} | 🕒 {timestamp}")
-
-    final_msg = f"📤 *Latest {subject.upper()} Uploads:*\n\n" + "\n\n".join(latest_entries)
-    bot.send_message(m.chat.id, final_msg, parse_mode="Markdown")
 
 bot.infinity_polling()
