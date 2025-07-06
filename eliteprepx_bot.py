@@ -33,9 +33,10 @@ QUIZ_FILE = "data/quiz_scores.txt"
 def welcome(msg):
     user = msg.from_user
     user_id = user.id
-    username = f"@{user.username}" if user.username else "NoUsername"
+    username = f"@{user.username}" if user.username else f"UserID:{user.id}"
     name = user.first_name or "Unknown"
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
 
     os.makedirs("data", exist_ok=True)
 
