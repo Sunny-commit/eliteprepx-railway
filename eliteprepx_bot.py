@@ -112,6 +112,7 @@ def handle_premium_buttons(call):
         f.write(f"{call.from_user.id},{key}\n")
     bot.send_message(call.message.chat.id, f"💳 *{key.upper()} Premium* - ₹{price}\nPay via UPI: `patetichandu@oksbi`\nSend screenshot here.", parse_mode="Markdown")
 
+
 @bot.message_handler(content_types=['photo', 'document'])
 def handle_payment_screenshot(msg):
     user = msg.from_user
@@ -120,12 +121,11 @@ def handle_payment_screenshot(msg):
 
     bot.forward_message(ADMIN_ID, msg.chat.id, msg.message_id)
 
+    user_line = None
     if os.path.exists(PENDING_FILE):
         with open(PENDING_FILE, "r") as f:
             lines = [line.strip() for line in f.readlines()]
         user_line = next((line for line in lines if user_id in line), None)
-    else:
-        user_line = None
 
     if user_line:
         plan = user_line.split(",")[1]
@@ -133,10 +133,15 @@ def handle_payment_screenshot(msg):
         markup = InlineKeyboardMarkup()
         markup.add(InlineKeyboardButton("✅ Give ACCESS", callback_data=f"approve_{user_id}_{plan}"))
         bot.send_message(ADMIN_ID, f"📸 Screenshot from {username} | ID: `{user_id}`\nSelected Plan: *{plan.upper()}*", parse_mode="Markdown", reply_markup=markup)
+        bot.reply_to(msg, "✅ Screenshot received. Please wait for admin verification.")
     else:
         bot.send_message(ADMIN_ID, f"📸 Screenshot from {username} | ID: `{user_id}`\n⚠️ *No plan selected yet!*", parse_mode="Markdown")
+        bot.reply_to(msg,
+            "⚠️ You haven’t selected a premium plan yet!\n\n"
+            "Please click *'💎 Get Premium Access'* first and choose your plan before sending the payment screenshot.",
+            parse_mode="Markdown"
+        )
 
-    bot.reply_to(msg, "✅ Screenshot received. Please wait for admin verification.")
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("approve_"))
 def approve_user_plan(call):
